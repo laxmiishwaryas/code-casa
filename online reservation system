@@ -1,163 +1,180 @@
 import java.util.Scanner;
+import java.util.ArrayList;
+import java.util.List;
 
-public class Task1 {
-    private static final int MAX_RECORDS = 1000; // Maximum number of records
+class User {
+    private String userId;
+    private String password;
 
-    public static class User {
-        private String username;
-        private String password;
-
-        Scanner sc = new Scanner(System.in);
-
-
-
-        public String getUsername() {
-            System.out.println("Enter Username : ");
-            username = sc.nextLine();
-            return username;
-        }
-
-        public String getPassword() {
-            System.out.println("Enter Password : ");
-            password = sc.nextLine();
-            return password;
-        }
+    public User(String userId, String password) {
+        this.userId = userId;
+        this.password = password;
     }
 
-    public static class PnrRecord {
-        private int pnrNumber;
-        private String passengerName;
-        private String trainNumber;
-        private String classType;
-        private String journeyDate;
-        private String from;
-        private String to;
+    public String getUserId() {
+        return userId;
+    }
 
-        public PnrRecord(int pnrNumber, String passengerName, String trainNumber, String classType, String journeyDate, String from, String to) {
-            this.pnrNumber = pnrNumber;
-            this.passengerName = passengerName;
-            this.trainNumber = trainNumber;
-            this.classType = classType;
-            this.journeyDate = journeyDate;
-            this.from = from;
-            this.to = to;
+    public String getPassword() {
+        return password;
+    }
+}
+
+class Reservation {
+    private int id;
+    private String name;
+    private String date;
+    private int numberOfGuests;
+
+    public Reservation(int id, String name, String date, int numberOfGuests) {
+        this.id = id;
+        this.name = name;
+        this.date = date;
+        this.numberOfGuests = numberOfGuests;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public String getDate() {
+        return date;
+    }
+
+    public int getNumberOfGuests() {
+        return numberOfGuests;
+    }
+}
+
+class ReservationSystem {
+    private List<Reservation> reservations = new ArrayList<>();
+    private int nextId = 1;
+
+    public Reservation makeReservation(String name, String date, int numberOfGuests) {
+        Reservation reservation = new Reservation(nextId++, name, date, numberOfGuests);
+        reservations.add(reservation);
+        return reservation;
+    }
+
+    public List<Reservation> getReservations() {
+        return reservations;
+    }
+
+    public Reservation getReservationById(int id) {
+        for (Reservation reservation : reservations) {
+            if (reservation.getId() == id) {
+                return reservation;
+            }
+        }
+        return null;
+    }
+
+    public boolean cancelReservation(int id) {
+        Reservation reservation = getReservationById(id);
+        if (reservation != null) {
+            reservations.remove(reservation);
+            return true;
+        }
+        return false;
+    }
+}
+
+class ReservationSystemUI {
+    private ReservationSystem reservationSystem = new ReservationSystem();
+    private List<User> users = new ArrayList<>();
+
+    public ReservationSystemUI() {
+        // Add some sample users (you can replace this with your actual user management)
+        users.add(new User("user1", "password1"));
+        users.add(new User("user2", "password2"));
+    }
+
+    public User authenticateUser() {
+        Scanner scanner = new Scanner(System.in);
+        System.out.print("Enter User ID: ");
+        String userId = scanner.nextLine();
+        System.out.print("Enter Password: ");
+        String password = scanner.nextLine();
+
+        for (User user : users) {
+            if (user.getUserId().equals(userId) && user.getPassword().equals(password)) {
+                return user;
+            }
+        }
+        return null;
+    }
+
+    public void start() {
+        User authenticatedUser = null;
+        while (authenticatedUser == null) {
+            authenticatedUser = authenticateUser();
+            if (authenticatedUser == null) {
+                System.out.println("Invalid User ID or Password. Please try again.");
+            }
         }
 
-        public int getPnrNumber() {
-            return pnrNumber;
-        }
+        System.out.println("Welcome, " + authenticatedUser.getUserId() + "!");
 
-        public String getPassengerName() {
-            return passengerName;
-        }
+        Scanner scanner = new Scanner(System.in);
 
-        public String getTrainNumber() {
-            return trainNumber;
-        }
+        while (true) {
+            System.out.println("1. Make a reservation");
+            System.out.println("2. View all reservations");
+            System.out.println("3. Cancel a reservation");
+            System.out.println("4. Exit");
 
-        public String getClassType() {
-            return classType;
-        }
+            int choice = scanner.nextInt();
+            scanner.nextLine();
 
-        public String getJourneyDate() {
-            return journeyDate;
-        }
+            switch (choice) {
+                case 1:
+                    System.out.print("Name: ");
+                    String name = scanner.nextLine();
+                    System.out.print("Date: ");
+                    String date = scanner.nextLine();
+                    System.out.print("Number of guests: ");
+                    int numberOfGuests = scanner.nextInt();
+                    scanner.nextLine();
 
-        public String getFrom() {
-            return from;
-        }
+                    Reservation reservation = reservationSystem.makeReservation(name, date, numberOfGuests);
+                    System.out.println("Reservation made with ID " + reservation.getId());
+                    break;
+                case 2:
+                    System.out.println("Reservations:");
+                    for (Reservation r : reservationSystem.getReservations()) {
+                        System.out.println("Reservation ID => " + r.getId());
+                        System.out.println("Name Of the customer => " + r.getName());
+                        System.out.println("Number Of Guests => " + r.getNumberOfGuests());
+                        System.out.println("Date =>  " + r.getDate());
+                    }
+                    break;
+                case 3:
+                    System.out.print("Reservation ID to cancel: ");
+                    int id = scanner.nextInt();
+                    scanner.nextLine();
 
-        public String getTo() {
-            return to;
+                    if (reservationSystem.cancelReservation(id)) {
+                        System.out.println("Reservation canceled");
+                    } else {
+                        System.out.println("Reservation not found");
+                    }
+                    break;
+                case 4:
+                    return;
+                default:
+                    System.out.println("Invalid choice");
+            }
+
+            System.out.println();
         }
     }
 
     public static void main(String[] args) {
-        Scanner sc = new Scanner(System.in);
-        User user = new User();
-        String username = user.getUsername();
-        String password = user.getPassword();
-
-        PnrRecord[] records = new PnrRecord[MAX_RECORDS];
-        int recordCount = 0; // Counter to keep track of number of records
-
-        while (true) {
-            System.out.println("Enter the choice : ");
-            System.out.println("1. Insert Record.");
-            System.out.println("2. Show All Records.");
-            System.out.println("3. Cancel Ticket.");
-            System.out.println("4. Exit.");
-            int choice = sc.nextInt();
-            sc.nextLine(); // Consume newline
-
-            if (choice == 1) {
-                if (recordCount < MAX_RECORDS) {
-                    System.out.println("Enter the passenger name : ");
-                    String passengerName = sc.nextLine();
-                    System.out.println("Enter the train number : ");
-                    String trainNumber = sc.nextLine();
-                    System.out.println("Enter the class type : ");
-                    String classType = sc.nextLine();
-                    System.out.println("Enter the Journey date as 'YYYY-MM-DD' format");
-                    String journeyDate = sc.nextLine();
-                    System.out.println("Enter the starting place : ");
-                    String from = sc.nextLine();
-                    System.out.println("Enter the destination place :  ");
-                    String to = sc.nextLine();
-
-                    records[recordCount] = new PnrRecord(generatePnrNumber(), passengerName, trainNumber, classType, journeyDate, from, to);
-                    recordCount++;
-
-                    System.out.println("Record added successfully.");
-                } else {
-                    System.out.println("Maximum number of records reached.");
-                }
-            } else if (choice == 2) {
-                System.out.println("\nAll records printing.\n");
-                for (int i = 0; i < recordCount; i++) {
-                    PnrRecord record = records[i];
-                    System.out.println("PNR Number: " + record.getPnrNumber());
-                    System.out.println("Passenger Name: " + record.getPassengerName());
-                    System.out.println("Train Number: " + record.getTrainNumber());
-                    System.out.println("Class Type: " + record.getClassType());
-                    System.out.println("Journey Date: " + record.getJourneyDate());
-                    System.out.println("From Location: " + record.getFrom());
-                    System.out.println("To Location: " + record.getTo());
-                    System.out.println("--------------");
-                }
-            } else if (choice == 3) {
-                System.out.println("Enter the PNR number to cancel the ticket : ");
-                int pnrNumberToCancel = sc.nextInt();
-                sc.nextLine(); // Consume newline
-                boolean ticketCancelled = false;
-                for (int i = 0; i < recordCount; i++) {
-                    if (records[i].getPnrNumber() == pnrNumberToCancel) {
-                        // Shift records to remove the cancelled ticket
-                        for (int j = i; j < recordCount - 1; j++) {
-                            records[j] = records[j + 1];
-                        }
-                        recordCount--;
-                        ticketCancelled = true;
-                        System.out.println("Ticket with PNR number " + pnrNumberToCancel + " has been cancelled.");
-                        break;
-                    }
-                }
-                if (!ticketCancelled) {
-                    System.out.println("No ticket found with PNR number " + pnrNumberToCancel + ".");
-                }
-            } else if (choice == 4) {
-                System.out.println("Exiting the program.\n");
-                break;
-            } else {
-                System.out.println("Invalid Choice Entered.\n");
-            }
-        }
-
-        sc.close();
-    }
-
-    private static int generatePnrNumber() {
-        // Generate a random PNR number
-        return (int) (Math.random() * 9000) + 1000;
+        ReservationSystemUI obj = new ReservationSystemUI();
+        obj.start();
     }
 }
